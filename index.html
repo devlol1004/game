@@ -1,50 +1,63 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>숫자 야구 게임 (단일 파일)</title>
+    <title>⚾ 숫자 야구 게임 (모바일)</title>
     
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <style>
+        /* 기본 스타일 */
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             text-align: center; 
             margin: 0; 
-            padding: 20px;
-            background-color: #f4f4f9;
+            padding: 0;
+            background-color: #f0f2f5; /* 약간 어두운 배경 */
         }
-        h1 { color: #333; margin-bottom: 5px; }
-        p { color: #666; margin-bottom: 20px; }
+        h1 { color: #1e3c72; margin-bottom: 5px; padding-top: 15px; font-size: 1.8em; }
+        p { color: #666; margin-bottom: 20px; font-size: 1em; }
 
+        /* 메인 컨테이너 */
         #game-area {
-            max-width: 400px;
+            max-width: 450px; /* 모바일 최대 너비 설정 */
             margin: 0 auto;
-            padding: 20px;
+            padding: 20px 15px;
             background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            min-height: 100vh; /* 모바일에서 전체 화면 사용 */
+        }
+        
+        /* 입력 및 버튼 영역 */
+        #input-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
         }
 
         #guessInput {
-            padding: 10px;
-            font-size: 1.2em;
-            width: 150px;
+            padding: 12px;
+            font-size: 1.4em; /* 입력값 크게 */
+            width: 120px; 
             margin-right: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
+            border: 3px solid #ddd;
+            border-radius: 8px;
             text-align: center;
+            box-sizing: border-box;
         }
-
+        
         button {
-            padding: 10px 15px;
-            font-size: 1em;
+            padding: 12px 18px;
+            font-size: 1.1em;
+            font-weight: bold;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.2s;
+            height: 50px; /* 버튼 높이 조정 */
+            box-sizing: border-box;
         }
 
         #submitBtn {
@@ -60,49 +73,60 @@
         }
         #restartBtn:hover { background-color: #1e7e34; }
 
+        /* 결과 표시 영역 */
         #result {
-            margin-top: 20px;
+            margin-top: 25px;
             padding: 15px;
-            font-size: 1.1em;
+            font-size: 1.3em;
             font-weight: bold;
-            border-radius: 5px;
-            background-color: #e9ecef;
-            color: #333;
+            border-radius: 8px;
+            background-color: #e3f2fd; /* 밝은 파란색 배경 */
+            color: #1565c0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
+        /* 기록 영역 */
+        h2 { 
+            font-size: 1.5em; 
+            color: #444; 
+            margin-top: 30px; 
+            border-bottom: 2px solid #eee; 
+            padding-bottom: 5px;
+        }
         #history {
             list-style: none;
             padding: 0;
             margin-top: 15px;
-            max-height: 200px;
-            overflow-y: auto;
-            border-top: 1px solid #eee;
-        }
-        #history li {
-            padding: 8px 0;
-            border-bottom: 1px dashed #eee;
-            font-size: 0.95em;
+            max-height: 30vh; /* 모바일에서 스크롤 영역 제한 */
+            overflow-y: scroll;
             text-align: left;
         }
+        #history li {
+            padding: 10px 0;
+            border-bottom: 1px dashed #ddd;
+            font-size: 1.1em;
+            color: #333;
+        }
 
-        .strike { color: #dc3545; font-weight: bold; } /* 빨간색 */
-        .ball { color: #007bff; font-weight: bold; }   /* 파란색 */
+        /* S/B 강조 색상 */
+        .strike { color: #dc3545; font-weight: bold; } 
+        .ball { color: #007bff; font-weight: bold; }   
     </style>
 
     <script>
         $(document).ready(function() {
-            let answer = [];      // 정답을 저장할 배열
-            let attempts = 0;     // 시도 횟수
+            let answer = [];      
+            let attempts = 0;     
             const MAX_ATTEMPTS = 10;
-            const DIGIT_COUNT = 4;
+            const DIGIT_COUNT = 3; 
 
             // 게임 초기화 및 정답 생성
             function startGame() {
                 answer = generateRandomNumber(DIGIT_COUNT);
                 attempts = 0;
-                $('#result').html('게임 시작! **10번** 안에 맞춰보세요.');
+                $('#result').html(`게임 시작! **${DIGIT_COUNT}자리** 숫자를 **${MAX_ATTEMPTS}번** 안에 맞춰보세요.`);
                 $('#history').empty();
-                $('#guessInput').val('').prop('disabled', false); 
+                $('#guessInput').val('').prop('disabled', false).focus(); // 시작 시 입력 필드에 포커스
                 $('#submitBtn').prop('disabled', false).show(); 
                 $('#restartBtn').hide();
                 console.log('정답 (개발자용): ' + answer.join('')); 
@@ -116,7 +140,7 @@
                 for (let i = 0; i < count; i++) {
                     const index = Math.floor(Math.random() * numbers.length);
                     result.push(numbers[index]);
-                    numbers.splice(index, 1); // 선택된 숫자 제거
+                    numbers.splice(index, 1);
                 }
                 return result;
             }
@@ -150,7 +174,7 @@
                     endGame(false); // 패배
                 }
                 
-                $('#guessInput').val(''); // 입력 필드 초기화
+                $('#guessInput').val('').focus(); // 입력 후 다시 포커스
             });
 
             // 스트라이크와 볼 계산
@@ -174,26 +198,29 @@
             // 게임 상태 업데이트 (결과 및 기록)
             function updateGameStatus(guessStr, strikes, balls) {
                 let resultText = '';
-                let historyItem = `[${attempts}회] ${guessStr} : `;
+                let historyItem = `<span style="font-weight: bold;">[${attempts}회] ${guessStr}</span> : `;
                 
-                if (strikes > 0) {
-                    resultText += `<span class="strike">${strikes}S</span>`;
-                    historyItem += `${strikes}S`;
-                }
-                if (balls > 0) {
-                    if (strikes > 0) historyItem += ' ';
-                    resultText += `<span class="ball">${balls}B</span>`;
-                    historyItem += `${balls}B`;
-                }
-                
-                if (strikes === 0 && balls === 0) {
+                if (strikes > 0 || balls > 0) {
+                    if (strikes > 0) {
+                        resultText += `<span class="strike">${strikes}S</span>`;
+                        historyItem += `${strikes}S`;
+                    }
+                    if (balls > 0) {
+                        if (strikes > 0) {
+                            resultText += ' ';
+                            historyItem += ' ';
+                        }
+                        resultText += `<span class="ball">${balls}B</span>`;
+                        historyItem += `${balls}B`;
+                    }
+                } else {
                     resultText = '아웃 (Out!)';
                     historyItem += 'Out';
                 }
                 
                 $('#result').html(`결과: ${resultText} (남은 기회: ${MAX_ATTEMPTS - attempts}회)`);
                 
-                // 시도 기록 추가 (prepend로 최신 기록이 위로 오도록)
+                // 시도 기록 추가
                 $('#history').prepend(`<li>${historyItem}</li>`);
             }
             
@@ -201,19 +228,28 @@
             function endGame(isWin) {
                 $('#guessInput').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true).hide();
-                $('#restartBtn').show();
                 
+                // 승리/패배 메시지 강조
+                let finalMessage;
                 if (isWin) {
-                    $('#result').html(`🎉 **홈런!** 정답은 **${answer.join('')}**! **${attempts}번** 만에 맞히셨어요!`);
+                    finalMessage = `🎉 **홈런! 축하합니다!** 정답 **${answer.join('')}**! **${attempts}번** 만에 성공!`;
+                    $('#result').css('background-color', '#e8f5e9').css('color', '#388e3c'); // 승리 색상
                 } else {
-                    $('#result').html(`😭 **게임 오버!** 정답은 **${answer.join('')}**였습니다. 다시 도전해보세요!`);
+                    finalMessage = `😭 **게임 오버!** 정답은 **${answer.join('')}**였습니다. 다시 도전하세요!`;
+                    $('#result').css('background-color', '#ffebee').css('color', '#d32f2f'); // 패배 색상
                 }
+                $('#result').html(finalMessage);
+                $('#restartBtn').show();
             }
 
             // 다시 시작 버튼 클릭 이벤트
-            $('#restartBtn').on('click', startGame);
+            $('#restartBtn').on('click', function() {
+                // 리셋 시 결과 배경색 초기화
+                $('#result').css('background-color', '#e3f2fd').css('color', '#1565c0');
+                startGame();
+            });
 
-            // Enter 키로 제출 기능 추가 (모바일에서도 가상 키보드의 '완료' 버튼 역할을 할 수 있음)
+            // Enter 키 (모바일 키패드의 '완료' 역할)로 제출 기능 추가
             $('#guessInput').on('keypress', function(e) {
                 if (e.which === 13) { 
                     $('#submitBtn').click();
@@ -228,18 +264,25 @@
 </head>
 <body>
     <div id="game-area">
-        <h1>숫자 야구 게임</h1>
-        <p>0~9 중 중복 없는 4자리 숫자를 입력하세요.</p>
+        <h1>⚾ 숫자 야구 게임</h1>
+        <p>0~9 중 중복 없는 **3자리** 숫자를 입력하세요.</p>
 
-        <div>
-            <input type="number" id="guessInput" maxlength="4" placeholder="4자리 숫자" inputmode="numeric">
+        <div id="input-area">
+            <input 
+                type="number" 
+                id="guessInput" 
+                maxlength="3" 
+                placeholder="000" 
+                inputmode="numeric" 
+                pattern="\d{3}"
+            >
             <button id="submitBtn">확인</button>
             <button id="restartBtn" style="display: none;">다시 시작</button>
         </div>
 
         <div id="result">게임 시작!</div>
         
-        <h2 style="font-size: 1.2em; margin-top: 20px;">시도 기록</h2>
+        <h2>시도 기록</h2>
         <ul id="history"></ul>
     </div>
 </body>
