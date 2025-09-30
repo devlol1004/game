@@ -1,1 +1,246 @@
 
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>숫자 야구 게임 (단일 파일)</title>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            margin: 0; 
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        h1 { color: #333; margin-bottom: 5px; }
+        p { color: #666; margin-bottom: 20px; }
+
+        #game-area {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        #guessInput {
+            padding: 10px;
+            font-size: 1.2em;
+            width: 150px;
+            margin-right: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #submitBtn {
+            background-color: #007bff;
+            color: white;
+        }
+        #submitBtn:hover { background-color: #0056b3; }
+
+        #restartBtn {
+            background-color: #28a745;
+            color: white;
+            margin-left: 10px;
+        }
+        #restartBtn:hover { background-color: #1e7e34; }
+
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 5px;
+            background-color: #e9ecef;
+            color: #333;
+        }
+
+        #history {
+            list-style: none;
+            padding: 0;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            border-top: 1px solid #eee;
+        }
+        #history li {
+            padding: 8px 0;
+            border-bottom: 1px dashed #eee;
+            font-size: 0.95em;
+            text-align: left;
+        }
+
+        .strike { color: #dc3545; font-weight: bold; } /* 빨간색 */
+        .ball { color: #007bff; font-weight: bold; }   /* 파란색 */
+    </style>
+
+    <script>
+        $(document).ready(function() {
+            let answer = [];      // 정답을 저장할 배열
+            let attempts = 0;     // 시도 횟수
+            const MAX_ATTEMPTS = 10;
+            const DIGIT_COUNT = 4;
+
+            // 게임 초기화 및 정답 생성
+            function startGame() {
+                answer = generateRandomNumber(DIGIT_COUNT);
+                attempts = 0;
+                $('#result').html('게임 시작! **10번** 안에 맞춰보세요.');
+                $('#history').empty();
+                $('#guessInput').val('').prop('disabled', false); 
+                $('#submitBtn').prop('disabled', false).show(); 
+                $('#restartBtn').hide();
+                console.log('정답 (개발자용): ' + answer.join('')); 
+            }
+
+            // 중복 없는 랜덤 숫자 배열 생성
+            function generateRandomNumber(count) {
+                let numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+                let result = [];
+                
+                for (let i = 0; i < count; i++) {
+                    const index = Math.floor(Math.random() * numbers.length);
+                    result.push(numbers[index]);
+                    numbers.splice(index, 1); // 선택된 숫자 제거
+                }
+                return result;
+            }
+
+            // 사용자 입력 처리 및 게임 로직 실행
+            $('#submitBtn').on('click', function() {
+                const guessStr = $('#guessInput').val();
+                
+                // --- 입력값 유효성 검사 ---
+                if (guessStr.length !== DIGIT_COUNT || !/^\d+$/.test(guessStr)) {
+                    $('#result').html(`**경고:** ${DIGIT_COUNT}자리의 숫자를 정확히 입력해주세요.`);
+                    return;
+                }
+
+                const guess = guessStr.split('').map(Number);
+                
+                // 중복 숫자 검사
+                if (new Set(guess).size !== DIGIT_COUNT) {
+                    $('#result').html('**경고:** 중복되지 않은 숫자를 입력해야 합니다.');
+                    return;
+                }
+                
+                attempts++;
+                const { strikes, balls } = calculateScore(guess);
+                updateGameStatus(guessStr, strikes, balls);
+
+                // --- 게임 종료 조건 확인 ---
+                if (strikes === DIGIT_COUNT) {
+                    endGame(true); // 승리
+                } else if (attempts >= MAX_ATTEMPTS) {
+                    endGame(false); // 패배
+                }
+                
+                $('#guessInput').val(''); // 입력 필드 초기화
+            });
+
+            // 스트라이크와 볼 계산
+            function calculateScore(guess) {
+                let strikes = 0;
+                let balls = 0;
+
+                for (let i = 0; i < DIGIT_COUNT; i++) {
+                    const guessDigit = guess[i];
+                    const answerIndex = answer.indexOf(guessDigit);
+
+                    if (answerIndex === i) {
+                        strikes++; // 숫자와 위치 일치 (Strike)
+                    } else if (answerIndex !== -1) {
+                        balls++; // 숫자만 일치 (Ball)
+                    }
+                }
+                return { strikes, balls };
+            }
+
+            // 게임 상태 업데이트 (결과 및 기록)
+            function updateGameStatus(guessStr, strikes, balls) {
+                let resultText = '';
+                let historyItem = `[${attempts}회] ${guessStr} : `;
+                
+                if (strikes > 0) {
+                    resultText += `<span class="strike">${strikes}S</span>`;
+                    historyItem += `${strikes}S`;
+                }
+                if (balls > 0) {
+                    if (strikes > 0) historyItem += ' ';
+                    resultText += `<span class="ball">${balls}B</span>`;
+                    historyItem += `${balls}B`;
+                }
+                
+                if (strikes === 0 && balls === 0) {
+                    resultText = '아웃 (Out!)';
+                    historyItem += 'Out';
+                }
+                
+                $('#result').html(`결과: ${resultText} (남은 기회: ${MAX_ATTEMPTS - attempts}회)`);
+                
+                // 시도 기록 추가 (prepend로 최신 기록이 위로 오도록)
+                $('#history').prepend(`<li>${historyItem}</li>`);
+            }
+            
+            // 게임 종료 처리
+            function endGame(isWin) {
+                $('#guessInput').prop('disabled', true);
+                $('#submitBtn').prop('disabled', true).hide();
+                $('#restartBtn').show();
+                
+                if (isWin) {
+                    $('#result').html(`🎉 **홈런!** 정답은 **${answer.join('')}**! **${attempts}번** 만에 맞히셨어요!`);
+                } else {
+                    $('#result').html(`😭 **게임 오버!** 정답은 **${answer.join('')}**였습니다. 다시 도전해보세요!`);
+                }
+            }
+
+            // 다시 시작 버튼 클릭 이벤트
+            $('#restartBtn').on('click', startGame);
+
+            // Enter 키로 제출 기능 추가 (모바일에서도 가상 키보드의 '완료' 버튼 역할을 할 수 있음)
+            $('#guessInput').on('keypress', function(e) {
+                if (e.which === 13) { 
+                    $('#submitBtn').click();
+                    e.preventDefault(); 
+                }
+            });
+
+            // 페이지 로드 시 게임 시작
+            startGame();
+        });
+    </script>
+</head>
+<body>
+    <div id="game-area">
+        <h1>숫자 야구 게임</h1>
+        <p>0~9 중 중복 없는 4자리 숫자를 입력하세요.</p>
+
+        <div>
+            <input type="number" id="guessInput" maxlength="4" placeholder="4자리 숫자" inputmode="numeric">
+            <button id="submitBtn">확인</button>
+            <button id="restartBtn" style="display: none;">다시 시작</button>
+        </div>
+
+        <div id="result">게임 시작!</div>
+        
+        <h2 style="font-size: 1.2em; margin-top: 20px;">시도 기록</h2>
+        <ul id="history"></ul>
+    </div>
+</body>
+</html>
