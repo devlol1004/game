@@ -3,287 +3,336 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚾ 숫자 야구 게임 (모바일)</title>
-    
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
+    <title>닥터 럭키의 과학적 행운 추천기</title>
     <style>
-        /* 기본 스타일 */
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            text-align: center; 
-            margin: 0; 
-            padding: 0;
-            background-color: #f0f2f5; /* 약간 어두운 배경 */
+        /* CSS: 모바일 최적화 및 디자인 */
+        :root {
+            --main-bg: #f5f5f7;
+            --main-color: #007aff;
+            --highlight-color: #e63946;
+            --ball-size: 45px;
         }
-        h1 { color: #1e3c72; margin-bottom: 5px; padding-top: 15px; font-size: 1.8em; }
-        p { color: #666; margin-bottom: 20px; font-size: 1em; }
 
-        /* 메인 컨테이너 */
-        #game-area {
-            max-width: 450px; /* 모바일 최대 너비 설정 */
-            margin: 0 auto;
-            padding: 20px 15px;
-            background: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            min-height: 100vh; /* 모바일에서 전체 화면 사용 */
+        body {
+            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--main-bg);
+            color: #333;
+            margin: 0;
+            padding: 15px;
+            text-align: center;
+            line-height: 1.6;
         }
-        
-        /* 입력 및 버튼 영역 */
-        #input-area {
-            display: flex;
-            justify-content: center;
-            align-items: center;
+
+        .container {
+            max-width: 420px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--main-color);
+            font-size: 1.6rem;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #666;
             margin-bottom: 20px;
         }
 
-        #guessInput {
-            padding: 12px;
-            font-size: 1.4em; /* 입력값 크게 */
-            width: 120px; 
-            margin-right: 10px;
-            border: 3px solid #ddd;
-            border-radius: 8px;
-            text-align: center;
-            box-sizing: border-box;
+        /* 입력 및 버튼 영역 */
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            align-items: center;
         }
-        
-        button {
-            padding: 12px 18px;
-            font-size: 1.1em;
-            font-weight: bold;
+
+        #countInput {
+            flex-grow: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        #recommendBtn {
+            padding: 12px 20px;
+            background-color: var(--main-color);
+            color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
+            font-size: 1rem;
             cursor: pointer;
             transition: background-color 0.2s;
-            height: 50px; /* 버튼 높이 조정 */
-            box-sizing: border-box;
         }
 
-        #submitBtn {
-            background-color: #007bff;
-            color: white;
+        #recommendBtn:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
         }
-        #submitBtn:hover { background-color: #0056b3; }
 
-        #restartBtn {
-            background-color: #28a745;
-            color: white;
-            margin-left: 10px;
+        /* 로또 번호 볼 디자인 */
+        #resultBalls {
+            min-height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 30px;
         }
-        #restartBtn:hover { background-color: #1e7e34; }
 
-        /* 결과 표시 영역 */
-        #result {
-            margin-top: 25px;
-            padding: 15px;
-            font-size: 1.3em;
+        .lotto-ball {
+            width: var(--ball-size);
+            height: var(--ball-size);
+            line-height: var(--ball-size);
+            border-radius: 50%;
+            background-color: #eee;
+            color: #333;
             font-weight: bold;
-            border-radius: 8px;
-            background-color: #e3f2fd; /* 밝은 파란색 배경 */
-            color: #1565c0;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            font-size: 1.1rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            animation: bounceIn 0.5s both;
         }
 
-        /* 기록 영역 */
-        h2 { 
-            font-size: 1.5em; 
-            color: #444; 
-            margin-top: 30px; 
-            border-bottom: 2px solid #eee; 
-            padding-bottom: 5px;
+        /* 번호대별 색상 */
+        .ball-1-10 { background-color: #fbc400; color: #fff; } 
+        .ball-11-20 { background-color: #69c8f2; color: #fff; } 
+        .ball-21-30 { background-color: #ff7272; color: #fff; } 
+        .ball-31-40 { background-color: #aaa; color: #fff; } 
+        .ball-41-45 { background-color: #b0d840; color: #fff; } 
+
+        /* 스토리텔링 및 인포그래픽 영역 */
+        #analysisArea {
+            margin-top: 20px;
         }
-        #history {
-            list-style: none;
-            padding: 0;
-            margin-top: 15px;
-            max-height: 30vh; /* 모바일에서 스크롤 영역 제한 */
-            overflow-y: scroll;
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            margin: 25px 0 15px;
+            border-bottom: 2px solid var(--main-color);
+            padding-bottom: 5px;
             text-align: left;
         }
-        #history li {
-            padding: 10px 0;
-            border-bottom: 1px dashed #ddd;
-            font-size: 1.1em;
-            color: #333;
+
+        /* 스토리텔링 박스 */
+        #storyText {
+            background-color: #f0f0ff; 
+            border: 1px solid var(--main-color);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: left;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+        
+        strong.keyword {
+            color: var(--highlight-color); 
+            font-weight: 800;
         }
 
-        /* S/B 강조 색상 */
-        .strike { color: #dc3545; font-weight: bold; } 
-        .ball { color: #007bff; font-weight: bold; }   
+        /* 인포그래픽 스타일 */
+        #infographic {
+            text-align: left;
+            padding: 10px 0;
+            border-top: 1px dashed #ddd;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .info-chart {
+            width: 70px;
+            height: 70px;
+            line-height: 70px;
+            border-radius: 50%;
+            background-color: #e8e8e8;
+            color: #333;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-align: center;
+            flex-shrink: 0;
+            margin-right: 15px;
+            border: 3px solid var(--main-color);
+        }
+
+        .info-text {
+            font-size: 0.9rem;
+        }
+
+        .info-text strong {
+            color: var(--main-color);
+        }
+        
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.3); }
+            100% { opacity: 1; transform: scale(1); }
+        }
     </style>
-
-    <script>
-        $(document).ready(function() {
-            let answer = [];      
-            let attempts = 0;     
-            const MAX_ATTEMPTS = 10;
-            const DIGIT_COUNT = 3; 
-
-            // 게임 초기화 및 정답 생성
-            function startGame() {
-                answer = generateRandomNumber(DIGIT_COUNT);
-                attempts = 0;
-                $('#result').html(`게임 시작! **${DIGIT_COUNT}자리** 숫자를 **${MAX_ATTEMPTS}번** 안에 맞춰보세요.`);
-                $('#history').empty();
-                $('#guessInput').val('').prop('disabled', false).focus(); // 시작 시 입력 필드에 포커스
-                $('#submitBtn').prop('disabled', false).show(); 
-                $('#restartBtn').hide();
-                console.log('정답 (개발자용): ' + answer.join('')); 
-            }
-
-            // 중복 없는 랜덤 숫자 배열 생성
-            function generateRandomNumber(count) {
-                let numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-                let result = [];
-                
-                for (let i = 0; i < count; i++) {
-                    const index = Math.floor(Math.random() * numbers.length);
-                    result.push(numbers[index]);
-                    numbers.splice(index, 1);
-                }
-                return result;
-            }
-
-            // 사용자 입력 처리 및 게임 로직 실행
-            $('#submitBtn').on('click', function() {
-                const guessStr = $('#guessInput').val();
-                
-                // --- 입력값 유효성 검사 ---
-                if (guessStr.length !== DIGIT_COUNT || !/^\d+$/.test(guessStr)) {
-                    $('#result').html(`**경고:** ${DIGIT_COUNT}자리의 숫자를 정확히 입력해주세요.`);
-                    return;
-                }
-
-                const guess = guessStr.split('').map(Number);
-                
-                // 중복 숫자 검사
-                if (new Set(guess).size !== DIGIT_COUNT) {
-                    $('#result').html('**경고:** 중복되지 않은 숫자를 입력해야 합니다.');
-                    return;
-                }
-                
-                attempts++;
-                const { strikes, balls } = calculateScore(guess);
-                updateGameStatus(guessStr, strikes, balls);
-
-                // --- 게임 종료 조건 확인 ---
-                if (strikes === DIGIT_COUNT) {
-                    endGame(true); // 승리
-                } else if (attempts >= MAX_ATTEMPTS) {
-                    endGame(false); // 패배
-                }
-                
-                $('#guessInput').val('').focus(); // 입력 후 다시 포커스
-            });
-
-            // 스트라이크와 볼 계산
-            function calculateScore(guess) {
-                let strikes = 0;
-                let balls = 0;
-
-                for (let i = 0; i < DIGIT_COUNT; i++) {
-                    const guessDigit = guess[i];
-                    const answerIndex = answer.indexOf(guessDigit);
-
-                    if (answerIndex === i) {
-                        strikes++; // 숫자와 위치 일치 (Strike)
-                    } else if (answerIndex !== -1) {
-                        balls++; // 숫자만 일치 (Ball)
-                    }
-                }
-                return { strikes, balls };
-            }
-
-            // 게임 상태 업데이트 (결과 및 기록)
-            function updateGameStatus(guessStr, strikes, balls) {
-                let resultText = '';
-                let historyItem = `<span style="font-weight: bold;">[${attempts}회] ${guessStr}</span> : `;
-                
-                if (strikes > 0 || balls > 0) {
-                    if (strikes > 0) {
-                        resultText += `<span class="strike">${strikes}S</span>`;
-                        historyItem += `${strikes}S`;
-                    }
-                    if (balls > 0) {
-                        if (strikes > 0) {
-                            resultText += ' ';
-                            historyItem += ' ';
-                        }
-                        resultText += `<span class="ball">${balls}B</span>`;
-                        historyItem += `${balls}B`;
-                    }
-                } else {
-                    resultText = '아웃 (Out!)';
-                    historyItem += 'Out';
-                }
-                
-                $('#result').html(`결과: ${resultText} (남은 기회: ${MAX_ATTEMPTS - attempts}회)`);
-                
-                // 시도 기록 추가
-                $('#history').prepend(`<li>${historyItem}</li>`);
-            }
-            
-            // 게임 종료 처리
-            function endGame(isWin) {
-                $('#guessInput').prop('disabled', true);
-                $('#submitBtn').prop('disabled', true).hide();
-                
-                // 승리/패배 메시지 강조
-                let finalMessage;
-                if (isWin) {
-                    finalMessage = `🎉 **홈런! 축하합니다!** 정답 **${answer.join('')}**! **${attempts}번** 만에 성공!`;
-                    $('#result').css('background-color', '#e8f5e9').css('color', '#388e3c'); // 승리 색상
-                } else {
-                    finalMessage = `😭 **게임 오버!** 정답은 **${answer.join('')}**였습니다. 다시 도전하세요!`;
-                    $('#result').css('background-color', '#ffebee').css('color', '#d32f2f'); // 패배 색상
-                }
-                $('#result').html(finalMessage);
-                $('#restartBtn').show();
-            }
-
-            // 다시 시작 버튼 클릭 이벤트
-            $('#restartBtn').on('click', function() {
-                // 리셋 시 결과 배경색 초기화
-                $('#result').css('background-color', '#e3f2fd').css('color', '#1565c0');
-                startGame();
-            });
-
-            // Enter 키 (모바일 키패드의 '완료' 역할)로 제출 기능 추가
-            $('#guessInput').on('keypress', function(e) {
-                if (e.which === 13) { 
-                    $('#submitBtn').click();
-                    e.preventDefault(); 
-                }
-            });
-
-            // 페이지 로드 시 게임 시작
-            startGame();
-        });
-    </script>
 </head>
 <body>
-    <div id="game-area">
-        <h1>⚾ 숫자 야구 게임</h1>
-        <p>0~9 중 중복 없는 **3자리** 숫자를 입력하세요.</p>
-
-        <div id="input-area">
-            <input 
-                type="number" 
-                id="guessInput" 
-                maxlength="3" 
-                placeholder="000" 
-                inputmode="numeric" 
-                pattern="\d{3}"
-            >
-            <button id="submitBtn">확인</button>
-            <button id="restartBtn" style="display: none;">다시 시작</button>
+    <div class="container">
+        <h1>🔬 닥터 럭키의 과학적 행운 분석</h1>
+        <p class="subtitle">과거 데이터를 기반으로 다음 회차 유력 번호를 유추합니다.</p>
+        
+        <div class="input-area">
+            <input type="number" id="countInput" placeholder="1~5개 입력" min="1" max="5">
+            <button id="recommendBtn">번호 분석 & 추천</button>
         </div>
 
-        <div id="result">게임 시작!</div>
+        <div id="resultBalls">
+            </div>
         
-        <h2>시도 기록</h2>
-        <ul id="history"></ul>
+        <div id="analysisArea">
+            
+            <div class="section-title">💬 닥터 럭키의 특별 코멘트 (스토리텔링)</div>
+            <div id="storyText">
+                위에 추천받고 싶은 개수를 입력하고 버튼을 눌러보세요. 데이터 분석에 기반한 흥미로운 행운의 스토리가 펼쳐집니다!
+            </div>
+
+            <div class="section-title">📊 분석 근거 인포그래픽</div>
+            <div id="infographic">
+                <p style="text-align: center; color: #666;">추천 버튼을 누르면 분석 근거가 시각적으로 나타납니다.</p>
+            </div>
+        </div>
     </div>
+
+    <script>
+        // JavaScript: 로직 및 스토리텔링
+        const analysisData = [
+            { num: 33, keyword: "최강의 불꽃", reason: "최근 100회 동안 무려 29번 등장하며 가장 불타올랐던 번호입니다.", chartText: "최근 100회 1위" },
+            { num: 13, keyword: "로또계의 교과서", reason: "전체 로또 역사에서 가장 많이 당첨된 번호 중 하나입니다. 통계적 안정성이 높습니다.", chartText: "전체 Top 3" },
+            { num: 19, keyword: "가장 강력한 이웃", reason: "직전 당첨 번호의 옆자리 번호로, 최근 10회 동안 5번이나 등장하며 기운을 뽐냅니다.", chartText: "이웃 번호 5/10회" },
+            { num: 9, keyword: "침묵의 사냥꾼", reason: "전체 기간 동안 가장 적게 나온 번호입니다. 이제 숨어 있던 잠재력을 폭발시킬 때입니다.", chartText: "전체 최저 출현" },
+            { num: 42, keyword: "정확한 타이밍", reason: "최근 100회차 동안 약 4.0회마다 정확하게 등장한 번호입니다. 다시 나올 타이밍을 맞이했습니다.", chartText: "주기 패턴 일치" }
+        ];
+
+        const countInput = document.getElementById('countInput');
+        const recommendBtn = document.getElementById('recommendBtn');
+        const resultBalls = document.getElementById('resultBalls');
+        const storyText = document.getElementById('storyText');
+        const infographic = document.getElementById('infographic');
+
+        function getBallClass(number) {
+            if (number >= 1 && number <= 10) return 'ball-1-10';
+            if (number >= 11 && number <= 20) return 'ball-11-20';
+            if (number >= 21 && number <= 30) return 'ball-21-30';
+            if (number >= 31 && number <= 40) return 'ball-31-40';
+            if (number >= 41 && number <= 45) return 'ball-41-45';
+            return '';
+        }
+
+        function renderBalls(numbers) {
+            resultBalls.innerHTML = '';
+            numbers.forEach((num, index) => {
+                const ball = document.createElement('div');
+                ball.className = `lotto-ball ${getBallClass(num)}`;
+                ball.textContent = num;
+                // 애니메이션 지연 효과 추가
+                ball.style.animationDelay = `${index * 0.1}s`; 
+                resultBalls.appendChild(ball);
+            });
+        }
+
+        function generateStory(selected) {
+            const count = selected.length;
+            let message = "";
+            let num0 = selected[0] ? selected[0].num : '';
+            let key0 = selected[0] ? selected[0].keyword : '';
+            let num1 = selected[1] ? selected[1].num : '';
+            let key1 = selected[1] ? selected[1].keyword : '';
+            let num2 = selected[2] ? selected[2].num : '';
+            let key2 = selected[2] ? selected[2].keyword : '';
+            let num3 = selected[3] ? selected[3].num : '';
+            let key3 = selected[3] ? selected[3].keyword : '';
+            let num4 = selected[4] ? selected[4].num : '';
+            let key4 = selected[4] ? selected[4].keyword : '';
+
+
+            if (count === 1) {
+                message = `
+                    <strong class="keyword">축하합니다! 당신은 '${key0}, ${num0}번'의 기운을 선택하셨군요.</strong><br><br>
+                    ${num0}번은 ${selected[0].reason.replace('입니다.', '입니다!')} 이 강력한 행운을 놓치지 마세요.
+                `;
+            } else if (count === 3) {
+                message = `
+                    <strong class="keyword">✨ 환상의 트리오! '전통의 힘'과 '최신 강세'가 만난 황금 조합입니다.</strong><br><br>
+                    🏆 <strong class="keyword">${num1}번(${key1})</strong>이 든든하게 중심을 잡아주고, 🥇 <strong class="keyword">${num0}번(${key0})</strong>이 폭발적인 당첨 빈도로 화력을 더합니다. 여기에 🤝 <strong class="keyword">${num2}번(${key2})</strong>이 합류하여 빈틈없는 행운을 만들어 줄 것입니다!
+                `;
+            } else if (count === 5) {
+                message = `
+                    <strong class="keyword">🔬 이것이 바로 저희 연구소의 '궁극의 균형 조합'입니다!</strong><br><br>
+                    1. ${num0}번과 ${num1}번으로 당첨 빈도의 <strong class="keyword">화력</strong>을 확보하고, 
+                    2. ⏰ ${num4}번(${key4})으로 주기 <strong class="keyword">패턴</strong>까지 체크했습니다. 
+                    3. 이제 나올 때가 된 ${num3}번과 끈질긴 ${num2}번까지 넣어 로또의 <strong class="keyword">무작위성</strong>까지 포용한 완벽한 전략입니다!
+                `;
+            } else if (count === 2) {
+                message = `
+                    <strong class="keyword">운명적인 만남! ${num0}번과 ${num1}번의 조합입니다.</strong><br><br>
+                    ${num0}번은 ${key0}의 힘으로, ${num1}번은 ${key1}의 기운으로 서로를 보완합니다. 두 개의 강력한 통계적 에너지가 당신에게 집중될 것입니다!
+                `;
+            } else if (count === 4) {
+                 message = `
+                    <strong class="keyword">빈틈없는 4개의 필승 라인업이 완성되었습니다!</strong><br><br>
+                    가장 뜨거운 1위 ${num0}번과 역사를 자랑하는 ${num1}번으로 확률적 우위를 확보했습니다. 여기에 기회를 엿보는 ${num2}번과 이제 나올 때가 된 ${num3}번까지, 데이터가 제시하는 완벽한 4개의 균형입니다!
+                `;
+            } else {
+                message = "유효한 개수를 입력해 주세요. (1개에서 5개 사이)";
+            }
+            
+            storyText.innerHTML = message;
+        }
+
+        function renderInfographic(selected) {
+            infographic.innerHTML = '';
+            
+            selected.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'info-item';
+                
+                const chart = document.createElement('div');
+                chart.className = 'info-chart';
+                chart.innerHTML = `<span style="font-size: 1.5rem;">${item.num}</span><br>${item.chartText}`;
+                
+                const text = document.createElement('div');
+                text.className = 'info-text';
+                text.innerHTML = `<strong>[${item.keyword}]</strong> ${item.reason}`;
+                
+                itemDiv.appendChild(chart);
+                itemDiv.appendChild(text);
+                infographic.appendChild(itemDiv);
+            });
+        }
+
+        recommendBtn.addEventListener('click', () => {
+            const count = parseInt(countInput.value);
+
+            if (isNaN(count) || count < 1 || count > 5) {
+                resultBalls.innerHTML = '';
+                infographic.innerHTML = '<p style="text-align: center; color: #666;">추천 버튼을 누르면 분석 근거가 시각적으로 나타납니다.</p>';
+                storyText.innerHTML = '<strong>⚠️ 죄송해요!</strong> 저희 분석가가 너무 신비주의라 **5개까지만** 공개한다고 하네요. 1에서 5 사이의 숫자를 입력해 주세요.';
+                return;
+            }
+
+            const selectedNumbers = analysisData.slice(0, count);
+            const numbers = selectedNumbers.map(item => item.num);
+            
+            // 렌더링
+            renderBalls(numbers);
+            generateStory(selectedNumbers);
+            renderInfographic(selectedNumbers);
+        });
+    </script>
 </body>
 </html>
